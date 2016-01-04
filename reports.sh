@@ -2,7 +2,7 @@
 
 #echo "RUN JOB"
 
-export RPT_PATH=/home/jrittenh/aleph/scripts/annex
+export RPT_PATH=/global/soft/aleph/src/annex
 
 export PERL5LIB=$RPT_PATH
 #~ /home/jrittenh/aleph/scripts/annex/shelfTrayCount.pl -e jrittenh@nd.edu
