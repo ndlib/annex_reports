@@ -209,8 +209,10 @@ say $rptPath;
 
 $table .= "</table>\n";
 
-$stats{'secs'}{'avg'} = $stats{'secs'}{'sum'} / $stats{'count'};
-$stats{'avg'} = getTimeChron($stats{'secs'}{'avg'});
+if($stats{'count'}) {
+    $stats{'secs'}{'avg'} = $stats{'secs'}{'sum'} / $stats{'count'};
+    $stats{'avg'} = getTimeChron($stats{'secs'}{'avg'});
+}
 
 my $body = '';
 $body .= "<html>\n";
