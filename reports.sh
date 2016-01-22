@@ -4,10 +4,7 @@
 
 export RPT_PATH=/global/soft/aleph/src/annex
 
-export PERL5LIB=$RPT_PATH
-#~ /home/jrittenh/aleph/scripts/annex/shelfTrayCount.pl -e jrittenh@nd.edu
-
-
+cd $RPT_PATH
 
 if [ `date +%H` = "08" ]; then
     # Daily Jobs
