@@ -18,19 +18,23 @@ use Justin qw/:annex sendMail2/;
 
 $|++;
 
-my ($complete, $dates, $emails, $range, $test, $from, $until);
+my ($complete, $dates, $range, $test, $from, $until);
+my (@eml);
 
 GetOptions(
     'c|complete'        => \$complete,
     'd|dates=s'         => \$dates,
-    'e|email|emails=s'  => \$emails,
+    'e|email|emails=s'  => \@eml,
     'r|range=s'         => \$range,
     't|test'            => \$test,
     'f|from=s'          => \$from,
     'u|until=s'         => \$until,
+    'debug+'            => \$debug,
 );
 
 my $datePattern = '^(\d{4})[\/\.-]?(\d{2})?[\/\.-]?(\d{2})?$';
+
+my $emails = join(',', split(/,; /, join(',', @eml)));
 
 $emails = $test ? 'jrittenh@nd.edu' : ($emails ? $emails : 'jrittenh@nd.edu');
 
