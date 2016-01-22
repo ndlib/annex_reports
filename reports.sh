@@ -17,7 +17,7 @@ if [ `date +%H` = "08" ]; then
     $RPT_PATH/shelfFillRpt.pl -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,michael@professionalsystems.co,miranda.r.vannevel.7@nd.edu,swalton@nd.edu
     #~ $RPT_PATH/ingestTime.pl
     if [ `date +%w` = "1" ]; then
-        $RPT_PATH/fillRequestRpt.pl -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,miranda.r.vannevel.7@nd.edu
-        $RPT_PATH/fillRequestRpt.pl -f 2015-08-24 -u `date +%Y-%m-%d -d "last sunday"` -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,miranda.r.vannevel.7@nd.edu
+        $RPT_PATH/fillRequestRpt.pl -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,miranda.r.vannevel.7@nd.edu,swalton@nd.edu
+        $RPT_PATH/fillRequestRpt.pl -f 2015-08-24 -u `date +%Y-%m-%d -d "last sunday"` -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,miranda.r.vannevel.7@nd.edu,swalton@nd.edu
     fi
 fi
