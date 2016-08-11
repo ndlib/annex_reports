@@ -18,6 +18,7 @@ if [ `date +%H` = "08" ]; then
     ## Regular Jobs
     #~ $RPT_PATH/workerStats.pl -e jrittenh@nd.edu -d `date +%Y%m%d -d yesterday`
     $RPT_PATH/workerStats.pl -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,miranda.r.vannevel.7@nd.edu,swalton@nd.edu -d `date +%Y%m%d -d yesterday`
+
     if [ `date +%w` = "1" ]; then
         # Weekly Jobs
         $RPT_PATH/fillRequestRpt.pl -e jrittenh@nd.edu,abales@nd.edu,tmorton@nd.edu,miranda.r.vannevel.7@nd.edu,swalton@nd.edu
