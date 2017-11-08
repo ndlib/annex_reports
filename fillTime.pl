@@ -58,19 +58,24 @@ my $title = "Annex Fill Times (".$start->ymd()." - ".$end->ymd().")";
 
 my $sql = 'SELECT '.
         "EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC') AS \"req\", ".
+        "EXTRACT(EPOCH FROM p.created_at AT TIME ZONE 'UTC') AS \"pull\", ".
         "EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') AS \"fill\" ".
     "FROM activity_logs a ".
-        "LEFT JOIN activity_logs b ON a.data->'request'->'id' = b.data->'request'->'id' ".
+        "LEFT JOIN activity_logs b ON a.data->'request'->'id' = b.data->'request'->'id' AND b.action = 'ReceivedRequest' ".
+        "LEFT JOIN activity_logs p ON a.data->'request'->'id' = p.data->'request'->'id' AND p.action = 'AssociatedItemAndBin' AND p.created_at BETWEEN b.created_at AND a.created_at".
     "WHERE a.action = 'FilledRequest' ".
-        "AND b.action = 'ReceivedRequest' ".
         "AND date(a.created_at::timestamp AT TIME ZONE 'UTC') BETWEEN '".$start->date()."' AND '".$end->date()."' ".
-    "ORDER BY EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
+    "ORDER BY EXTRACT(EPOCH FROM p.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
     '';
 
 my @rptCols = (
     {
         'id'    => 'req',
         'label' => 'Requested',
+    },
+    {
+        'id'    => 'pull',
+        'label' => 'Pulled',
     },
     {
         'id'    => 'fill',
@@ -95,12 +100,15 @@ my ($fh, $rptPath) = tempfile();
 say $fh join(",", map {'"'.$_->{'label'}.'"'} @rptCols);
 #~ say join("\t", map {$_->{'label'}} @rptCols);
 foreach my $request (@$data) {
-    my ($start, $stop) = ($request->{'req'}, $request->{'fill'});
-    $request->{'start'} = DateTime->from_epoch(epoch => $start, time_zone => "America/Indianapolis");
-    $request->{'stop'} = DateTime->from_epoch(epoch => $stop, time_zone => "America/Indianapolis");
+    #~ my ($start, $pulled, $stop) = ($request->{'req'}, $request->{'pull'}, $request->{'fill'});
+    $request->{'start'} = DateTime->from_epoch(epoch => $request->{'req'}, time_zone => "America/Indianapolis");
+    $request->{'pulled'} = DateTime->from_epoch(epoch => $request->{'pull'}, time_zone => "America/Indianapolis");
+    $request->{'stop'} = DateTime->from_epoch(epoch => $request->{'fill'}, time_zone => "America/Indianapolis");
+    $request->{'psecs'} = $request->{'pull'} - $request->{'req'};
     $request->{'secs'} = $request->{'fill'} - $request->{'req'};
     #~ my $timeString = getTimeStringLong($request->{'secs'});
     my $timeString = getTimeChron($request->{'secs'});
+    my $pTimeSTring = getTimeChron($request->{'psecs'});
 
     say $fh '"'.$request->{'start'}->ymd().' '.$request->{'start'}->hms().'","'.$request->{'stop'}->ymd().' '.$request->{'stop'}->hms().'","'.$timeString.'"';
     $table .= "<tr>\n";

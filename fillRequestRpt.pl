@@ -18,7 +18,7 @@ use Justin qw/:annex sendMail2/;
 
 $|++;
 
-my ($complete, $dates, $debug, $range, $test, $from, $until);
+my ($complete, $dates, $debug, $range, $showstats, $test, $from, $until);
 my (@eml);
 
 GetOptions(
@@ -108,6 +108,7 @@ my $title = "Annex Filled Requests (".$from->ymd()." - ".$until->ymd().")";
 
 my $sql = 'SELECT '.
         "EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC') AS \"req\", ".
+        "EXTRACT(EPOCH FROM p.created_at AT TIME ZONE 'UTC') AS \"pull\", ".
         "EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') AS \"fill\", ".
         "a.data->'request'->'source' AS \"src\", ".
         "a.data->'request'->'req_type' AS \"type\", ".
@@ -119,11 +120,13 @@ my $sql = 'SELECT '.
         "TRIM(SUBSTR(i.call_number,1,2)) AS \"class\" ".
     "FROM activity_logs a ".
         "LEFT JOIN items i ON CAST(a.data->'request'->>'item_id' AS INTEGER) = i.id ".
-        "LEFT JOIN activity_logs b ON a.data->'request'->'id' = b.data->'request'->'id' AND b.action = 'ReceivedRequest' ".
+        "LEFT JOIN activity_logs b ON CAST(a.data->'request'->>'id' AS INTEGER) = CAST(b.data->'request'->>'id' AS INTEGER) AND b.action = 'ReceivedRequest' ".
+        "LEFT JOIN activity_logs p ON CAST(a.data->'request'->>'item_id' AS INTEGER) = CAST(p.data->'item'->>'id' AS INTEGER) AND p.action = 'AssociatedItemAndBin' AND p.created_at BETWEEN b.created_at AND a.created_at ".
+        #~ "LEFT JOIN activity_logs p ON a.data->'request'->'id' = p.data->'request'->'id' AND p.action = 'AssociatedItemAndBin' AND p.created_at BETWEEN b.created_at AND a.created_at ".
+        #~ "LEFT JOIN activity_logs p ON a.data->'request'->'id' = p.data->'request'->'id' AND p.created_at BETWEEN b.created_at AND a.created_at ".
     "WHERE a.action = 'FilledRequest' ".
-        "AND CAST(a.data->'request'->>'item_id' AS INTEGER) = i.id ".
-        "AND date(a.created_at::timestamp AT TIME ZONE 'UTC') BETWEEN '".$from->date()."' AND '".$until->date()."' ".
-    "ORDER BY EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
+        "AND date(p.created_at::timestamp AT TIME ZONE 'UTC') BETWEEN '".$from->date()."' AND '".$until->date()."' ".
+    "ORDER BY EXTRACT(EPOCH FROM p.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
     '';
 
 say $sql if ($debug);
@@ -132,6 +135,10 @@ my @rptCols = (
     {
         'id'    => 'requested',
         'label' => 'Requested',
+    },
+    {
+        'id'    => 'pulled',
+        'label' => 'Pulled',
     },
     {
         'id'    => 'filled',
@@ -170,6 +177,10 @@ my @rptCols = (
         'label' => 'Class',
     },
     {
+        'id'    => 'pdur',
+        'label' => 'Time to Pull',
+    },
+    {
         'id'    => 'dur',
         'label' => 'Time to Fill',
     },
@@ -184,7 +195,7 @@ $table .= "<tr>\n";
 $table .= join('', map {"    <th>".$_->{'label'}."</th>\n"} @rptCols);
 $table .= "</tr>\n";
 
-my %stats;
+my $stats = {};
 
 my ($fh, $rptPath) = tempfile();
 say $fh join(",", map {'"'.$_->{'label'}.'"'} @rptCols);
@@ -194,11 +205,15 @@ foreach my $request (@$data) {
         $request->{$col} =~ s/^"(.*)"$/$1/;
     }
     $request->{'secs'} = $request->{'fill'} - $request->{'req'};
-    $request->{'reqDT'} = DateTime->from_epoch(epoch => $request->{'req'}, time_zone => "America/Indianapolis");
-    $request->{'fillDT'} = DateTime->from_epoch(epoch => $request->{'fill'}, time_zone => "America/Indianapolis");
+    $request->{'psecs'} = $request->{'pull'} - $request->{'req'};
+    $request->{'reqDT'} = DateTime->from_epoch(epoch => $request->{'req'} // 0, time_zone => "America/Indianapolis");
+    $request->{'pullDT'} = DateTime->from_epoch(epoch => $request->{'pull'} // 0, time_zone => "America/Indianapolis");
+    $request->{'fillDT'} = DateTime->from_epoch(epoch => $request->{'fill'} // 0, time_zone => "America/Indianapolis");
     $request->{'requested'} = $request->{'reqDT'}->ymd().' '.$request->{'reqDT'}->hms();
+    $request->{'pulled'} = $request->{'pullDT'}->ymd().' '.$request->{'pullDT'}->hms();
     $request->{'filled'} = $request->{'fillDT'}->ymd().' '.$request->{'fillDT'}->hms();
-    $request->{'dur'} = getTimeStringLong($request->{'secs'});
+    #~ $request->{'dur'} = getTimeStringLong($request->{'secs'});
+    $request->{'pdur'} = getTimeChron($request->{'psecs'});
     $request->{'dur'} = getTimeChron($request->{'secs'});
 
     say $fh join(",", map {'"'.$request->{$_->{'id'}}.'"'} @rptCols);
@@ -207,18 +222,29 @@ foreach my $request (@$data) {
     $table .= join('', map {"    <td ".(($_->{'align'} || $_->{'width'}) ? 'style="'.($_->{'align'} ? "text-align: ".$_->{'align'}.';' : '').($_->{'width'} ? "width: ".$_->{'width'}.';' : '') : '').'">'.$request->{$_->{'id'}}."</td>\n"} @rptCols);
     $table .= "</tr>\n";
 
-    $stats{'secs'}{'sum'} += $request->{'secs'};
-    $stats{'count'}++;
+    $stats->{'psecs'}{'sum'} += $request->{'psecs'};
+    $stats->{'secs'}{'sum'} += $request->{'secs'};
+    $stats->{'count'}++;
 }
 close($fh);
 say $rptPath;
 
-$table .= "</table>\n";
+if ($showstats) {
+    #~ $stats->{'psecs'}{'avg'} = $stats->{'psecs'}{'sum'} / $stats->{'count'};
+    #~ $stats->{'secs'}{'avg'} = $stats->{'secs'}{'sum'} / $stats->{'count'};
+    $stats->{'tot'}{'dest'} = "Total:";
+    $stats->{'tot'}{'pdur'} = getTimeChron($stats->{'psecs'}{'sum'});
+    $stats->{'tot'}{'dur'} = getTimeChron($stats->{'secs'}{'sum'});
+    $stats->{'avg'}{'dest'} = "Average:";
+    $stats->{'avg'}{'pdur'} = getTimeChron($stats->{'psecs'}{'sum'} / $stats->{'count'});
+    $stats->{'avg'}{'dur'} = getTimeChron($stats->{'secs'}{'sum'} / $stats->{'count'});
 
-if($stats{'count'}) {
-    $stats{'secs'}{'avg'} = $stats{'secs'}{'sum'} / $stats{'count'};
-    $stats{'avg'} = getTimeChron($stats{'secs'}{'avg'});
+    $table .= "<tr>\n";
+    $table .= join('', map {$stats->{'tot'}{$_->{'id'}} ? "    <td ".(($_->{'align'} || $_->{'width'}) ? 'style="'.($_->{'align'} ? "text-align: ".$_->{'align'}.';' : '').($_->{'width'} ? "width: ".$_->{'width'}.';' : '') : '').'">'.$stats->{'tot'}{$_->{'id'}}."</td>\n" : "<td/>"} @rptCols);
+    $table .= "</tr>\n";
 }
+
+$table .= "</table>\n";
 
 my $body = '';
 $body .= "<html>\n";
