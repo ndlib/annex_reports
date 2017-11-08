@@ -18,7 +18,7 @@ use Justin qw/:annex sendMail2/;
 
 $|++;
 
-my ($complete, $dates, $range, $test, $from, $until);
+my ($complete, $dates, $debug, $range, $test, $from, $until);
 my (@eml);
 
 GetOptions(
@@ -125,6 +125,8 @@ my $sql = 'SELECT '.
         "AND date(a.created_at::timestamp AT TIME ZONE 'UTC') BETWEEN '".$from->date()."' AND '".$until->date()."' ".
     "ORDER BY EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
     '';
+
+say $sql if ($debug);
 
 my @rptCols = (
     {
