@@ -261,6 +261,12 @@ $body .= $table;
 $body .= "</body>\n";
 $body .= "</html>";
 
+if ($test) {
+    open(my $htmlFH, '>', 'report.html');
+    say $htmlFH $body;
+    close($htmlFH);
+}
+
 my $rptFile = $title.DateTime->now(time_zone => "America/Indianapolis")->datetime().".csv";
 $rptFile =~ s/ //g;
 
