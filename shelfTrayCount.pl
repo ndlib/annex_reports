@@ -66,7 +66,7 @@ $etable = $table;
 
 foreach my $sf (@{$data}) {
     my %shelf = %$sf;
-    
+
     if (($shelf{'barcode'} =~ /^SHELF-\w-\d{3}-\w$/) && ($shelf{'trays'} == $shelfSize{$shelf{'tray_size'}})) {
         $frpt .= sprintf('%-13s', $shelf{'barcode'})." | ".sprintf('%5d', $shelf{'trays'})."\n";
         $fprintout .= "$shelf{'barcode'},$shelf{'trays'}\n";
