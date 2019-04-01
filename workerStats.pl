@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 
 use strict;
 use 5.10.1;
@@ -50,7 +50,7 @@ my $sql = "SELECT DATE(action_timestamp::timestamp AT TIME ZONE 'UTC') AS \"date
     "AND DATE(action_timestamp::timestamp AT TIME ZONE 'UTC') = '".$date->ymd."' ".
     "GROUP BY DATE(action_timestamp::timestamp AT TIME ZONE 'UTC'), ".($hourly ? "DATE_PART('hour', action_timestamp::timestamp AT TIME ZONE 'UTC'), " : "")."username ".
     "";
-    
+
 #~ say $sql;
 #~ exit;
 
@@ -63,10 +63,10 @@ my $data = annexQuery($sql);
 
 #~ my $rpt = "Partially Full Shelves\n".sprintf('%-13s', 'Shelf')."\tTrays\n";
 #~ my $printout = "Partially Full Shelves\nShelf,Trays\n";
-#~ 
+#~
 #~ my $erpt = "Invalid Shelves\n".sprintf('%-30s', 'Shelf')."\tTrays\n";
 #~ my $eprintout = "Invalid Shelves\nShelf,Trays\n";
-#~ 
+#~
 #~ my $frpt = "Full Shelves\n".sprintf('%-13s', 'Shelf')."\tTrays\n";
 #~ my $fprintout = "Full Shelves\nShelf,Trays\n";
 

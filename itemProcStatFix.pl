@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 
 use strict;
 use 5.10.1;
@@ -57,7 +57,7 @@ my $last = 0;
 while (my $l = $csv->getline_hr($fh)) {
     $x++;
     my %line = %$l;
-    
+
     if ($line{'doc_nbr'} eq $line{'adm_doc_nbr'}) {
         monitor($x, $count, 1);
         next;
@@ -80,14 +80,14 @@ while (my $l = $csv->getline_hr($fh)) {
         @bcs = ();
         #~ my %imsRecs = %$imsData;
         #~ say STDERR p(%imsRecs);
-        
+
         foreach my $badRec (sort {$a->{'Z30_BARCODE'} <=> $b->{'Z30_BARCODE'}} @$bad) {
             my $bc = $badRec->{'Z30_BARCODE'};
             my $imsData = annexQuery($annexQuery, [$bc], {'last' => $last});
             my $imsItem = shift(@$imsData);
             say STDERR p($imsItem);
 
-            
+
             #~ if ($bc eq '00000018223768') {
                 #~ say STDERR p($imsData->{$bc});
                 #~ say STDERR $bc;
