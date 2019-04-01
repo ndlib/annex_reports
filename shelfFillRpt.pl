@@ -11,7 +11,6 @@ use Getopt::Long  qw/:config bundling no_ignore_case no_auto_abbrev/;
 use HTML::Entities;
 use Time::HiRes qw/time gettimeofday/;
 
-use Data::Printer;
 
 use Justin;
 use Justin qw/:oracle :annex/;
