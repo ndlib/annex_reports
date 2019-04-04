@@ -3,8 +3,6 @@
 use strict;
 use 5.10.1;
 
-use Justin;
-
 my $h = 14;
 my $d = 7;
 my $sec = 700000;

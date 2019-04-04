@@ -6,8 +6,7 @@ use 5.10.1;
 use Getopt::Long  qw/:config bundling no_ignore_case no_auto_abbrev/;
 use Text::CSV;
 
-use Justin;
-use Justin qw/:oracle :annex/;
+use Annex qw/:env annex_prod/;
 
 $|++;
 

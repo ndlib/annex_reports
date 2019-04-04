@@ -8,8 +8,7 @@ use File::Temp qw/tempfile/;
 use Getopt::Long  qw/:config bundling no_ignore_case no_auto_abbrev/;
 use HTML::Entities;
 
-use Justin;
-use Justin qw/:annex sendMail2/;
+use Annex qw/:env annex_prod/;
 
 $|++;
 
