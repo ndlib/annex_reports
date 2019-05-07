@@ -120,7 +120,10 @@ my $sql = 'SELECT '.
         #~ "LEFT JOIN activity_logs p ON a.data->'request'->'id' = p.data->'request'->'id' AND p.created_at BETWEEN b.created_at AND a.created_at ".
     "WHERE a.action = 'FilledRequest' ".
         "AND date(p.created_at::timestamp AT TIME ZONE 'UTC') BETWEEN '".$from->date()."' AND '".$until->date()."' ".
-    "ORDER BY EXTRACT(EPOCH FROM p.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
+    "ORDER BY ".
+    "EXTRACT(EPOCH FROM p.created_at AT TIME ZONE 'UTC'), ".
+    "EXTRACT(EPOCH FROM b.created_at AT TIME ZONE 'UTC'), ".
+    "EXTRACT(EPOCH FROM a.created_at AT TIME ZONE 'UTC') ".
     '';
 
 say $sql if ($debug);

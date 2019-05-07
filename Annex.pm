@@ -46,7 +46,6 @@ sub import {
             if (-d 's' and -s "s/$environment") {
                 $params = LoadFile("s/$environment");
             }
-            p($params);
         } elsif ($symbol =~ /^(?:!|no_?)(.*)$/) {
             $syms{$1} = 0;
         } else {
@@ -59,7 +58,7 @@ sub import {
         @syms{@REQUIRED} = 1;
     }
     local $Exporter::ExportLevel = 1;
-    my @stuff = grep {%syms{$_} == 1} keys(%syms);
+    my @stuff = grep {$syms{$_} == 1} keys(%syms);
     $pkg->SUPER::import(@stuff);
 }
 
