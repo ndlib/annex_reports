@@ -26,8 +26,8 @@ chomp(our $start_es = `date +%s.%N`);
 
 $VERSION = 1.00;
 @ISA = qw/Exporter/;
-@EXPORT = qw/alephQuery3 annexQuery getTimeChron getTimeString getTimeStringLong sendMail2/;
-#~ @EXPORT_OK = qw//;
+@EXPORT = qw/alephQuery3 annexQuery getTimeChron getTimeString getTimeStringLong sendMail2 createTable createCSV getColumns htmlEmailBody/;
+@EXPORT_OK = qw/createTableOpen createTableClose createTableHeaderRow createTableRow createCSVLine/;
 @DEFAULT = @EXPORT;
 @REQUIRED = qw//;
 
@@ -457,6 +457,118 @@ sub wrapString {
     }
 
     return "$wrapped\n";
+}
+
+sub getColumns {
+    my ($query) = @_;
+
+    my $elements = [];
+    if ($query =~ /^SELECT (.*?) FROM/) {
+        my $select = $1;
+        #~ p($select);
+        my @split = split(/, ?/, $select);
+        @$elements = map {/^.* AS "?(.*?)"?$/ ? $1 : $_} @split;
+        #~ p(@split);
+        #~ p($elements);
+    }
+    return $elements;
+}
+
+sub createTable {
+    my ($cols, $data) = @_;
+
+    my $table = createTableOpen();
+    $table .= createTableHeaderRow($cols);
+    foreach my $row (@$data) {
+        #~ p($row);
+        #~ exit;
+        $table .= createTableRow($cols, $row);
+    }
+    $table .= createTableClose();
+
+    return $table;
+    #~ p($cols);
+    #~ p($data);
+}
+
+sub createTableOpen {
+    return "<table>\n";
+}
+
+sub createTableClose {
+    return "</table>\n";
+}
+
+sub createTableRow {
+    my ($cols, $data) = @_;
+    my $row = "    <tr>\n";
+    foreach my $col (@$cols) {
+        $row .= "        <td>$data->{$col}</td>\n";
+    }
+    $row .= "    </tr>\n";
+    return $row;
+}
+
+sub createTableHeaderRow {
+    my ($cols) = @_;
+
+    my $row = "    <tr>\n";
+    foreach my $col (@$cols) {
+        $row .= "        <th>$col</th>\n";
+    }
+    $row .= "    </tr>\n";
+    return $row;
+}
+
+sub createCSV {
+    my ($cols, $data, $separator) = @_;
+
+    $separator = $separator || ',';
+
+    my $quote = 0;
+
+    if ($separator eq ',') {
+        $quote = 1;
+    }
+
+    my %hh = map {$_ => $_} @$cols;
+
+    my $csvData = createCSVLine($cols, \%hh, $separator, $quote);
+
+    foreach my $row (@$data) {
+        $csvData .= createCSVLine($cols, $row, $separator, $quote);
+    }
+    return $csvData;
+}
+
+sub createCSVLine {
+    my ($cols, $data, $separator, $quote) = @_;
+
+    my $line = join($separator, map{$quote ? "\"$_\"" : $_} @{$data}{@$cols})."\n";
+}
+
+sub htmlEmailBody {
+    my ($subject, $content) = @_;
+    my $body = "<!DOCTYPE html>\n";
+    $body .= "<html>\n";
+    $body .= "<head>\n";
+    $body .= "    <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"/>\n";
+    $body .= "    <title>Annex$subject</title>\n";
+    $body .= "    <style type=\"text/css\">\n";
+    $body .= "        table, tr, th, td {\n";
+    $body .= "             border: 1px solid black;\n";
+    $body .= "             border-collapse: collapse;\n";
+    $body .= "             padding: 3px;\n";
+    $body .= "             text-align: left;\n";
+    $body .= "        }\n";
+    $body .= "    </style>\n";
+    $body .= "</head>\n";
+    $body .= "<body>\n";
+    $body .= "\n$content\n";
+    $body .= "</body>\n";
+    $body .= "</html>";
+
+    return $body;
 }
 
 1;
