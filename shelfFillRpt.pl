@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 
 use strict;
-use experimental qw/smartmatch/;
 use 5.10.1;
 
 use DateTime;
