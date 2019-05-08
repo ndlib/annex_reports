@@ -23,7 +23,7 @@ if [[ $(date +%-H) -eq "8" ]] || [[ "$DEBUG" == "true" ]]; then
         $RPT_PATH/shelfTrayCount.pl -e $EMAILS
         $RPT_PATH/shelfFillRpt.pl -e $EMAILS
     fi
-    if {[[ $(date +%-d) -eq "1" ]] && [[ $(expr $(date +%m) / 3) -eq $(expr $(date +%m) / 3) ]] 2> /dev/null;} || [[ "$DEBUG" == "true" ]]; then
+    if { [[ $(date +%-d) -eq "1" ]] && [[ $(expr $(date +%m) / 3) -eq $(expr $(date +%m) / 3) ]] 2> /dev/null; } || [[ "$DEBUG" == "true" ]]; then
         $RPT_PATH/aisleTrayCounts.pl -e $EMAILS
         $RPT_PATH/shelfTrayList.pl -e $EMAILS
     fi
