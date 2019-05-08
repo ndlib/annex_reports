@@ -9,8 +9,6 @@ use Getopt::Long  qw/:config bundling no_ignore_case no_auto_abbrev/;
 
 use Annex qw/:env annex_prod/;
 
-use Data::Printer;
-
 $|++;
 select STDERR;
 $|++;
