@@ -18,4 +18,8 @@ if [[ $(date +%-H) -eq "8" ]]; then
         $RPT_PATH/shelfTrayCount.pl -e annex-reports-list@nd.edu
         $RPT_PATH/shelfFillRpt.pl -e annex-reports-list@nd.edu
     fi
+    if [[ $(date +%-d) -eq "1" ]] && [[ $(expr $(date +%m) / 3) -eq $(expr $(date +%m) / 3) ]] 2> /dev/null; then
+        $RPT_PATH/aisleTrayCounts.pl -e annex-reports-list@nd.edu
+        $RPT_PATH/shelfTrayList.pl -e annex-reports-list@nd.edu
+    fi
 fi
