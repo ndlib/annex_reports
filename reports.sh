@@ -2,6 +2,7 @@
 
 #echo "RUN JOB"
 
+export PERL5LIB=/home/app/perl5/lib/perl5
 export RPT_PATH=/global/soft/aleph/src/annex
 
 export EMAILS=${1:-annex-reports-list@nd.edu}
